@@ -1,0 +1,45 @@
+# Deployment path to AWS Lambda + API Gateway using the Serverless Framework.
+# Not required to run the project locally (see README) — this documents how
+# the same Express app would be deployed as managed, scalable AWS infra,
+# with DynamoDB replacing the in-memory DeviceStore for persistence.
+#
+# Install: npm i -D serverless serverless-http
+# Deploy:  npx serverless deploy
+
+service: calm-home-hub
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: ap-south-1 # Mumbai — closest AWS region for an India-market pilot
+  environment:
+    DEVICES_TABLE: ${self:service}-devices-${sls:stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:Query
+        - dynamodb:Scan
+      Resource: !GetAtt DevicesTable.Arn
+
+functions:
+  api:
+    handler: dist/lambda.handler
+    events:
+      - httpApi: '*'
+
+resources:
+  Resources:
+    DevicesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.DEVICES_TABLE}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
