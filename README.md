@@ -1,5 +1,7 @@
 # Calm Home Hub
 
+ ![Demo](./demo.gif)
+
 A small, working smart-home control system inspired by mui Lab's **mui Board**
 concept: a wooden interface that stays invisible until touched, syncing state
 to the cloud and controllable from a mobile app.
